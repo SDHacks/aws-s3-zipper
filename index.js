@@ -163,6 +163,7 @@ S3Zipper.prototype = {
                 , Key: s3ZipFileName
                 , ContentType: "application/zip"
                 , Body: readStream
+                , ACL: 'public-read'
             })
             .send(function (err, result) {
                 readStream.close();
