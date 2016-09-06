@@ -131,7 +131,6 @@ S3Zipper.prototype = {
                         else {
 
                             var name = t.calculateFileName(f);
-                            console.log('zipping ', name,'...');
 
                             zip.append(data.Body, {name:name});
                             callback(null, f);
@@ -164,12 +163,6 @@ S3Zipper.prototype = {
                 , Key: s3ZipFileName
                 , ContentType: "application/zip"
                 , Body: readStream
-            })
-            .on('httpUploadProgress', function (e) {
-                var p = Math.round(e.loaded / e.total * 100) ;
-                if(p % 10 == 0)
-                    console.log('upload progress', p, '%');
-
             })
             .send(function (err, result) {
                 readStream.close();
