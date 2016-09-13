@@ -209,7 +209,7 @@ S3Zipper.prototype = {
 
 
     }
-    ,zipToS3FileFragments: function (s3FolderName, startKey, s3ZipFileName, maxFileCount, maxFileSize , callback){
+    ,zipToS3FileFragments: function (s3FolderName, startKey, s3ZipFileName, maxFileCount, maxFileSize , callback, finalCallback){
         var t = this;
         var tempFile = '__' + Date.now() + '.zip';
 
@@ -221,11 +221,11 @@ S3Zipper.prototype = {
         var count = 0;
         this.zipToFileFragments(s3FolderName,startKey,tempFile,maxFileCount,maxFileSize,function(err,result){
             if(err)
-                callback(err);
+                finalCallback(err);
             else{
                 finalResult=result;
                 if(!result || result.length == 0)
-                    callback(null,result); /// dont need to wait for uploads
+                    finalCallback(null,result); /// dont need to wait for uploads
             }
         })
         .onFileZipped = function(fragFileName,result){
@@ -238,15 +238,15 @@ S3Zipper.prototype = {
         function uploadFrag(s3FragName,localFragName,result){
             pendingUploads++;
             t.uploadLocalFileToS3(localFragName, s3FragName, function (err, uploadResult) {
-
                 if(uploadResult){
+                    callback(err, uploadResult);
                     result.uploadedFile = uploadResult;
                     console.log('remove temp file ',localFragName);
                     fs.unlink(localFragName);
                 }
                 pendingUploads--;
                 if(pendingUploads == 0 && finalResult){
-                    callback(null,finalResult);
+                    finalCallback(null,finalResult);
                 }
             });
         }
