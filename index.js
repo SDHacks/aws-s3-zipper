@@ -116,6 +116,10 @@ S3Zipper.prototype = {
 
         var zip = new archiver.create('zip');
         if(pipe) zip.pipe(pipe);
+        zip.on('error', function(error) {
+            zip.abort();
+            console.error("Error zipping archive");
+        });
 
         var t= this;
 
@@ -141,7 +145,6 @@ S3Zipper.prototype = {
 
                 }, function(err,results){
                     zip.finalize();
-                    zip.manifest = results;
                     callback(err,{
                         zip: zip,
                         zippedFiles: results,
@@ -167,8 +170,10 @@ S3Zipper.prototype = {
             })
             .send(function (err, result) {
                 readStream.close();
-                if (err)
+                if (err) {
+                    console.error("Error uploading zip to s3");
                     callback(err);
+                }
                 else {
                     console.log('upload completed.');
                    callback(null,result);
@@ -259,7 +264,7 @@ S3Zipper.prototype = {
             setTimeout(function(){
                 callback(err,result);
                 fileStream.close();
-            },1000);
+            },5000);
         });
     }
     ,zipToFileFragments: function (s3FolderName,startKey,zipFileName ,maxFileCount,maxFileSize,callback){
@@ -294,7 +299,7 @@ S3Zipper.prototype = {
 
                 else
                     events.onFileZipped(fragFileName,result);
-            },1000); /// TODO: Zip needs a bit more time to finishing writing. I'm sure there is a better way
+            },5000); /// TODO: Zip needs a bit more time to finishing writing. I'm sure there is a better way
         }
 
         var counter = 0;
