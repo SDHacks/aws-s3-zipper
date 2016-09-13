@@ -269,7 +269,7 @@ S3Zipper.prototype = {
             setTimeout(function(){
                 callback(err,result);
                 fileStream.close();
-            },5000);
+            },1000);
         });
     }
     ,zipToFileFragments: function (s3FolderName,startKey,zipFileName ,maxFileCount,maxFileSize,callback){
@@ -304,7 +304,7 @@ S3Zipper.prototype = {
 
                 else
                     events.onFileZipped(fragFileName,result);
-            },5000); /// TODO: Zip needs a bit more time to finishing writing. I'm sure there is a better way
+            },1000); /// TODO: Zip needs a bit more time to finishing writing. I'm sure there is a better way
         }
 
         var counter = 0;
