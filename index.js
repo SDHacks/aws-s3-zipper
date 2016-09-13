@@ -120,14 +120,25 @@ S3Zipper.prototype = {
             zip.abort();
             console.error("Error zipping archive");
         });
+        pipe.on('close', function() {
+            console.log(zip.pointer() + ' total bytes');
+            callback(null,{
+                zip: zip,
+                zippedFiles: results,
+                totalFilesScanned:clearedFiles.totalFilesScanned,
+                lastScannedFile:clearedFiles.lastScannedFile
+            });
+        });
 
         var t= this;
+        var results = null, clearedFiles = null;
 
-        this.getFiles(folderName,startKey,maxFileCount,maxFileSize,function(err,clearedFiles){
+        this.getFiles(folderName,startKey,maxFileCount,maxFileSize,function(err,cleared){
             if(err)
                 console.error(err);
             else{
-                var files = clearedFiles.files;
+                var files = cleared.files;
+                clearedFiles = cleared;
                 async.map(files,function(f,callback){
                     t.s3bucket.getObject({Bucket: t.awsConfig.bucket,Key: f.Key },function(err,data){
                         if(err)
@@ -143,15 +154,9 @@ S3Zipper.prototype = {
 
                     });
 
-                }, function(err,results){
+                }, function(err,res){
+                    results = res;
                     zip.finalize();
-                    callback(err,{
-                        zip: zip,
-                        zippedFiles: results,
-                        totalFilesScanned:clearedFiles.totalFilesScanned,
-                        lastScannedFile:clearedFiles.lastScannedFile
-                    });
-
                 });
             }
         });
